@@ -3,11 +3,13 @@ package com.ecs.ecommercestore.Api.Controller.Auth;
 import com.ecs.ecommercestore.Api.Model.LoginBody;
 import com.ecs.ecommercestore.Api.Model.LoginResponse;
 import com.ecs.ecommercestore.Api.Model.RegistrationBody;
+import com.ecs.ecommercestore.Entity.LocalUser;
 import com.ecs.ecommercestore.Exception.UserAlreadyExistsException;
 import com.ecs.ecommercestore.Service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,5 +40,9 @@ public class AuthenticationController {
             loginResponse.setJwt(jwt);
             return ResponseEntity.ok(loginResponse);
         }
+    }
+    @GetMapping("/me")
+    public LocalUser getLoggedInUserProfile(@AuthenticationPrincipal LocalUser localUser){
+        return localUser;
     }
 }
