@@ -1,4 +1,4 @@
-package com.ecs.ecommercestore.Security;
+package com.ecs.ecommercestore.Api.Security;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.ecs.ecommercestore.Entity.LocalUser;
