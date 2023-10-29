@@ -20,8 +20,8 @@ public class UserService {
         this.jwtService = jwtService;
     }
     public LocalUser registerUser(RegistrationBody registrationBody) throws UserAlreadyExistsException {
-        if (localUserRepository.findLocalUserByUsernameIgnoreCase(registrationBody.getUsername()).isPresent() ||
-        localUserRepository.findLocalUserByEmailIgnoreCase(registrationBody.getEmail()).isPresent()){
+        if (localUserRepository.findUserByUsernameIgnoreCase(registrationBody.getUsername()).isPresent() ||
+        localUserRepository.findUserByEmailIgnoreCase(registrationBody.getEmail()).isPresent()){
             throw new UserAlreadyExistsException();
         }
         LocalUser user = new LocalUser();
@@ -33,7 +33,7 @@ public class UserService {
         return localUserRepository.save(user);
     }
     public String LoginUser(LoginBody loginBody){
-        Optional<LocalUser> optionalLocalUser = localUserRepository.findLocalUserByUsernameIgnoreCase(loginBody.getUsername());
+        Optional<LocalUser> optionalLocalUser = localUserRepository.findUserByUsernameIgnoreCase(loginBody.getUsername());
         if(optionalLocalUser.isPresent()){
             LocalUser localUser = optionalLocalUser.get();
             if(encryptionService.verifyPassword(loginBody.getPassword(), localUser.getPassword())){

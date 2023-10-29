@@ -1,5 +1,6 @@
 package com.ecs.ecommercestore.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class WebOrderQuantity {
     @Column(name = "quantity",nullable = false)
     private Integer quantity;
     @ManyToOne (optional = false)
+    @JsonIgnore
     @JoinColumn(name = "order_id",nullable = false)
     private WebOrder order;
 }

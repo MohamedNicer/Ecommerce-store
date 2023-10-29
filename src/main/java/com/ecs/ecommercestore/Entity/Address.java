@@ -1,5 +1,6 @@
 package com.ecs.ecommercestore.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class Address {
     private String city;
     @Column(name = "country",nullable = false,length = 60)
     private String country;
+    @JsonIgnore
     @ManyToOne (optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private LocalUser user;
