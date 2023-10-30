@@ -41,7 +41,7 @@ public class AuthenticationController {
             return ResponseEntity.ok(loginResponse);
         }
     }
-    @GetMapping("/me")
+    @GetMapping("/fetch")
     public LocalUser getLoggedInUserProfile(@AuthenticationPrincipal LocalUser localUser){
         return localUser;
     }
