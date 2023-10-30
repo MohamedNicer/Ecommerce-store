@@ -21,7 +21,7 @@ public class WebSecurityConfig {
         httpSecurity.cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.disable());
         httpSecurity.addFilterBefore(jwtRequestFilter, AuthorizationFilter.class);
         httpSecurity.authorizeHttpRequests(auth ->
-                auth.requestMatchers("/product","/auth/login","/auth/register").permitAll()
+                auth.requestMatchers("/product","/auth/login","/auth/register","auth/verify").permitAll()
                 .anyRequest().authenticated());
         return httpSecurity.build();
     }

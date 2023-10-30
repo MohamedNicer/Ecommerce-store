@@ -6,6 +6,7 @@ import com.ecs.ecommercestore.Api.Model.RegistrationBody;
 import com.ecs.ecommercestore.Entity.LocalUser;
 import com.ecs.ecommercestore.Exception.EmailFailureException;
 import com.ecs.ecommercestore.Exception.UserAlreadyExistsException;
+import com.ecs.ecommercestore.Exception.UserNotVerifiedException;
 import com.ecs.ecommercestore.Service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -30,22 +31,45 @@ public class AuthenticationController {
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (EmailFailureException e) {
-            throw new RuntimeException(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginBody loginBody){
-        String jwt = userService.LoginUser(loginBody);
+        String jwt = null;
+        try {
+            jwt = userService.LoginUser(loginBody);
+        } catch (UserNotVerifiedException e) {
+            LoginResponse loginResponse = new LoginResponse();
+            loginResponse.setSuccess(false);
+            String reason = "USER_NOT_VERIFIED";
+            if(e.isNewEmailSent()){
+                reason += "_EMAIL_RESENT";
+            }
+            loginResponse.setFailureReason(reason);
+            return ResponseEntity.status((HttpStatus.FORBIDDEN)).body(loginResponse);
+        } catch (EmailFailureException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } else {
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setJwt(jwt);
+            loginResponse.setSuccess(true);
             return ResponseEntity.ok(loginResponse);
         }
     }
     @GetMapping("/fetch")
-    public LocalUser getLoggedInUserProfile(@AuthenticationPrincipal LocalUser localUser){
-        return localUser;
+    public LocalUser getLoggedInUserProfile(@AuthenticationPrincipal LocalUser user){
+        return user;
+    }
+    @PostMapping("/verify")
+    public ResponseEntity verifyEmail(@RequestParam String token){
+        if (userService.verifyUser(token)){
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 }

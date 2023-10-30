@@ -6,15 +6,21 @@ import com.ecs.ecommercestore.Entity.LocalUser;
 import com.ecs.ecommercestore.Entity.VerificationToken;
 import com.ecs.ecommercestore.Exception.EmailFailureException;
 import com.ecs.ecommercestore.Exception.UserAlreadyExistsException;
+import com.ecs.ecommercestore.Exception.UserNotVerifiedException;
 import com.ecs.ecommercestore.Repository.LocalUserRepository;
 import com.ecs.ecommercestore.Repository.VerificationTokenRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserService {
+    @Value("${email.timeout}")
+    private Long emailTimeout;
     private LocalUserRepository localUserRepository;
     private VerificationTokenRepository verificationTokenRepository;
     private EncryptionService encryptionService;
@@ -50,14 +56,41 @@ public class UserService {
         user.getVerificationTokens().add(verificationToken);
         return verificationToken;
     }
-    public String LoginUser(LoginBody loginBody){
+    public String LoginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
         Optional<LocalUser> optionalLocalUser = localUserRepository.findUserByUsernameIgnoreCase(loginBody.getUsername());
         if(optionalLocalUser.isPresent()){
-            LocalUser localUser = optionalLocalUser.get();
-            if(encryptionService.verifyPassword(loginBody.getPassword(), localUser.getPassword())){
-                return jwtService.generateJWT(localUser);
+            LocalUser user = optionalLocalUser.get();
+            if(encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())){
+                if (user.isEmailVerified()) {
+                    return jwtService.generateJWT(user);
+                } else {
+                    List<VerificationToken> verificationTokens = user.getVerificationTokens();
+                    boolean resend = verificationTokens.isEmpty() ||
+                            verificationTokens.get(0).getCreatedTimestamp().before(new Timestamp(System.currentTimeMillis() - emailTimeout));
+                    if(resend){
+                        VerificationToken verificationToken = creteVerificationToken(user);
+                        verificationTokenRepository.save(verificationToken);
+                        emailService.sendVerificationToken(verificationToken);
+                    }
+                    throw new UserNotVerifiedException(resend);
+                }
             }
         }
         return null;
+    }
+    @Transactional
+    public boolean verifyUser(String token){
+        Optional<VerificationToken> tokenOptional = verificationTokenRepository.findByToken(token);
+        if(tokenOptional.isPresent()){
+            VerificationToken verificationToken = tokenOptional.get();
+            LocalUser user = verificationToken.getUser();
+            if (!user.isEmailVerified()){
+                user.setEmailVerified(true);
+                localUserRepository.save(user);
+                verificationTokenRepository.deleteAllByUser(user);
+                return true;
+            }
+        }
+        return false;
     }
 }

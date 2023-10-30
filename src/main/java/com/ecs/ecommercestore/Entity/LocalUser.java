@@ -31,6 +31,8 @@ public class LocalUser {
     @JsonIgnore
     @Getter @Setter private List<Address> addresses = new ArrayList<>();
     @OneToMany (mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
+    @OrderBy("id desc")
     @Getter @Setter private List<VerificationToken> verificationTokens = new ArrayList<>();
+    @Column(name = "email_verified",nullable = false)
+    @Getter @Setter private boolean emailVerified = false;
 }

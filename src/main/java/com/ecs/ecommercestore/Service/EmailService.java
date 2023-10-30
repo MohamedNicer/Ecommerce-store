@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-    @Value("{email.from}")
+    @Value("${email.from}")
     private String fromAddress;
-    @Value("{app.frontend.url}")
+    @Value("${app.frontend.url}")
     private String url;
 
     private JavaMailSender javaMailSender;
@@ -27,7 +27,7 @@ public class EmailService {
         return simpleMailMessage;
     }
     public void sendVerificationToken(VerificationToken verificationToken) throws EmailFailureException {
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        SimpleMailMessage mailMessage = makeMailMessage();
         mailMessage.setTo(verificationToken.getUser().getEmail());
         mailMessage.setSubject("Email Verification");
         mailMessage.setText("Please follow the link below to activate your account\n"
