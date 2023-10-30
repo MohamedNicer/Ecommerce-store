@@ -4,6 +4,7 @@ import com.ecs.ecommercestore.Api.Model.LoginBody;
 import com.ecs.ecommercestore.Api.Model.LoginResponse;
 import com.ecs.ecommercestore.Api.Model.RegistrationBody;
 import com.ecs.ecommercestore.Entity.LocalUser;
+import com.ecs.ecommercestore.Exception.EmailFailureException;
 import com.ecs.ecommercestore.Exception.UserAlreadyExistsException;
 import com.ecs.ecommercestore.Service.UserService;
 import jakarta.validation.Valid;
@@ -28,6 +29,8 @@ public class AuthenticationController {
             return ResponseEntity.ok().build();
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (EmailFailureException e) {
+            throw new RuntimeException(e);
         }
     }
     @PostMapping("/login")

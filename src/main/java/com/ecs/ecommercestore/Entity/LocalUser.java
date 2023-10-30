@@ -30,4 +30,7 @@ public class LocalUser {
     @OneToMany(mappedBy = "user", cascade = CascadeType. REMOVE, orphanRemoval = true)
     @JsonIgnore
     @Getter @Setter private List<Address> addresses = new ArrayList<>();
+    @OneToMany (mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @Getter @Setter private List<VerificationToken> verificationTokens = new ArrayList<>();
 }
