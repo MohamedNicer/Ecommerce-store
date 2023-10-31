@@ -7,7 +7,6 @@ import com.ecs.ecommercestore.Exception.EmailFailureException;
 import com.ecs.ecommercestore.Exception.UserAlreadyExistsException;
 import com.ecs.ecommercestore.Exception.UserNotVerifiedException;
 import com.ecs.ecommercestore.Repository.VerificationTokenRepository;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
