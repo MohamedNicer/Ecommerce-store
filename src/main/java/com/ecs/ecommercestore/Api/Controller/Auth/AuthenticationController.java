@@ -38,7 +38,7 @@ public class AuthenticationController {
     public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginBody loginBody){
         String jwt = null;
         try {
-            jwt = userService.LoginUser(loginBody);
+            jwt = userService.loginUser(loginBody);
         } catch (UserNotVerifiedException e) {
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setSuccess(false);

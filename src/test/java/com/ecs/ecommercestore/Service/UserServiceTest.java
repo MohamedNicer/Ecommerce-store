@@ -1,7 +1,13 @@
 package com.ecs.ecommercestore.Service;
 
+import com.ecs.ecommercestore.Api.Model.LoginBody;
 import com.ecs.ecommercestore.Api.Model.RegistrationBody;
+import com.ecs.ecommercestore.Entity.VerificationToken;
+import com.ecs.ecommercestore.Exception.EmailFailureException;
 import com.ecs.ecommercestore.Exception.UserAlreadyExistsException;
+import com.ecs.ecommercestore.Exception.UserNotVerifiedException;
+import com.ecs.ecommercestore.Repository.VerificationTokenRepository;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
@@ -14,6 +20,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @SpringBootTest
 public class UserServiceTest {
 
@@ -24,6 +33,8 @@ public class UserServiceTest {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private VerificationTokenRepository verificationTokenRepository;
 
     @Test
     @Transactional
@@ -48,4 +59,49 @@ public class UserServiceTest {
 
     }
 
+    @Test
+    @Transactional
+    public void testLoginUSer() throws EmailFailureException, UserNotVerifiedException {
+        LoginBody body = new LoginBody();
+        body.setUsername("User1-NotExists");
+        body.setPassword("password11-BadPassword");
+        Assertions.assertNull(userService.loginUser(body), "The User Should Not exist");
+        body.setUsername("User1");
+        Assertions.assertNull(userService.loginUser(body), "The Password Should be incorrect");
+        body.setPassword("password11");
+        Assertions.assertNotNull(userService.loginUser(body), "The USer Should Login successfully");
+        body.setUsername("User2");
+        body.setPassword("password21");
+        try {
+            userService.loginUser(body);
+            Assertions.assertTrue(false, "User Should not have email verified");
+        }catch (UserNotVerifiedException ex) {
+            Assertions.assertTrue(ex.isNewEmailSent(), "Email verification should be sent");
+            Assertions.assertEquals(1, greenMailExtension.getReceivedMessages().length);
+        }
+        try {
+            userService.loginUser(body);
+            Assertions.assertTrue(false, "User Should not have email verified");
+        }catch (UserNotVerifiedException ex) {
+            Assertions.assertFalse(ex.isNewEmailSent(), "Email verification should not be resent");
+            Assertions.assertEquals(1, greenMailExtension.getReceivedMessages().length);
+        }
+    }
+    @Test
+    @Transactional
+    public void testVerifyUser() throws EmailFailureException {
+        Assertions.assertFalse(userService.verifyUser("Bad Token"),"Token Should Be Invalid or Doesn't Exist");
+        LoginBody loginBody = new LoginBody();
+        loginBody.setUsername("User2");
+        loginBody.setPassword("password21");
+        try{
+            userService.loginUser(loginBody);
+            Assertions.fail("User Should Have His Email Unverified");
+        }catch (UserNotVerifiedException e){
+            List<VerificationToken> verificationTokens = verificationTokenRepository.findByUser_IdOrderByIdDesc(2L);
+            String token = verificationTokens.get(0).getToken();
+            Assertions.assertTrue(userService.verifyUser(token),"Token Should Be Valid!");
+            Assertions.assertNotNull(loginBody,"User Should Be Verified");
+        }
+    }
 }

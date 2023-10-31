@@ -44,11 +44,11 @@ public class UserService {
         user.setFirstName(registrationBody.getFirstName());
         user.setLastName(registrationBody.getLastName());
         user.setUsername(registrationBody.getUsername());
-        VerificationToken verificationToken = creteVerificationToken(user);
+        VerificationToken verificationToken = createVerificationToken(user);
         emailService.sendVerificationToken(verificationToken);
         return localUserRepository.save(user);
     }
-    public VerificationToken creteVerificationToken(LocalUser user){
+    public VerificationToken createVerificationToken(LocalUser user){
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(jwtService.generateVerificationJWT(user));
         verificationToken.setCreatedTimestamp(new Timestamp(System.currentTimeMillis()));
@@ -56,7 +56,7 @@ public class UserService {
         user.getVerificationTokens().add(verificationToken);
         return verificationToken;
     }
-    public String LoginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
+    public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
         Optional<LocalUser> optionalLocalUser = localUserRepository.findUserByUsernameIgnoreCase(loginBody.getUsername());
         if(optionalLocalUser.isPresent()){
             LocalUser user = optionalLocalUser.get();
@@ -68,7 +68,7 @@ public class UserService {
                     boolean resend = verificationTokens.isEmpty() ||
                             verificationTokens.get(0).getCreatedTimestamp().before(new Timestamp(System.currentTimeMillis() - emailTimeout));
                     if(resend){
-                        VerificationToken verificationToken = creteVerificationToken(user);
+                        VerificationToken verificationToken = createVerificationToken(user);
                         verificationTokenRepository.save(verificationToken);
                         emailService.sendVerificationToken(verificationToken);
                     }
