@@ -19,16 +19,33 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 
+/**
+ * Filter for decoding a JWT in the Authorization header and loading the user
+ * object into the authentication context.
+ * @author mohamednicer
+ */
 @Component
 public class JWTRequestFilter extends OncePerRequestFilter {
+
+    /** The JWT Service. */
     private JWTService jwtService;
+
+    /** The Local User Repo. */
     private LocalUserRepository localUserRepository;
 
+    /**
+     * Constructor for spring injection.
+     * @param jwtService
+     * @param localUserRepository
+     */
     public JWTRequestFilter(JWTService jwtService, LocalUserRepository localUserRepository) {
         this.jwtService = jwtService;
         this.localUserRepository = localUserRepository;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String tokenHeader = request.getHeader("Authorization");

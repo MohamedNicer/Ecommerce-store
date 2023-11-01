@@ -6,26 +6,35 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * The quantity ordered of a product.
+ * @author mohamednicer
+ */
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "web_order_quantity ")
 public class WebOrderQuantity {
+
+    /** The unqiue id of the order quantity. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id",nullable = false)
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    @ManyToOne (optional = false)
+    /** The product being ordered. */
+    @ManyToOne(optional = false)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(name = "quantity",nullable = false)
+    /** The quantity being ordered. */
+    @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @ManyToOne (optional = false)
+    /** The order itself. */
     @JsonIgnore
-    @JoinColumn(name = "order_id",nullable = false)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
     private WebOrder order;
 }

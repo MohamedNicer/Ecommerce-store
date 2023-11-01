@@ -19,15 +19,41 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service for handling user actions.
+ * @author mohamednicer
+ */
 @Service
 public class UserService {
+
+    /** How many seconds from generation should the Verification Token expire? */
     @Value("${email.timeout}")
     private Long emailTimeout;
+
+    /** The LocalUserRepository. */
     private LocalUserRepository localUserRepository;
+
+    /** The VerificationTokenRepository. */
     private VerificationTokenRepository verificationTokenRepository;
+
+    /** The encryption service. */
     private EncryptionService encryptionService;
+
+    /** The JWT service. */
     private JWTService jwtService;
+
+    /** The email service. */
     private EmailService emailService;
+
+    /**
+     * Constructor injected by spring.
+     *
+     * @param localUserRepository
+     * @param verificationTokenRepository
+     * @param encryptionService
+     * @param jwtService
+     * @param emailService
+     */
     public UserService(LocalUserRepository localUserRepository, VerificationTokenRepository verificationTokenRepository, EncryptionService encryptionService, JWTService jwtService, EmailService emailService){
         this.localUserRepository = localUserRepository;
         this.verificationTokenRepository = verificationTokenRepository;
@@ -35,6 +61,13 @@ public class UserService {
         this.jwtService = jwtService;
         this.emailService = emailService;
     }
+
+    /**
+     * Attempts to register a user given the information provided.
+     * @param registrationBody The registration information.
+     * @return The local user that has been written to the database.
+     * @throws UserAlreadyExistsException Thrown if there is already a user with the given information.
+     */
     public LocalUser registerUser(RegistrationBody registrationBody) throws UserAlreadyExistsException, EmailFailureException {
         if (localUserRepository.findUserByUsernameIgnoreCase(registrationBody.getUsername()).isPresent() ||
         localUserRepository.findUserByEmailIgnoreCase(registrationBody.getEmail()).isPresent()){
@@ -50,6 +83,12 @@ public class UserService {
         emailService.sendVerificationToken(verificationToken);
         return localUserRepository.save(user);
     }
+
+    /**
+     * Creates a VerificationToken object for sending to the user.
+     * @param user The user the token is being generated for.
+     * @return The object created.
+     */
     public VerificationToken createVerificationToken(LocalUser user){
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(jwtService.generateVerificationJWT(user));
@@ -58,6 +97,12 @@ public class UserService {
         user.getVerificationTokens().add(verificationToken);
         return verificationToken;
     }
+
+    /**
+     * Logs in a user and provides an authentication token back.
+     * @param loginBody The login request.
+     * @return The authentication token. Null if the request was invalid.
+     */
     public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
         Optional<LocalUser> optionalLocalUser = localUserRepository.findUserByUsernameIgnoreCase(loginBody.getUsername());
         if(optionalLocalUser.isPresent()){
@@ -80,6 +125,12 @@ public class UserService {
         }
         return null;
     }
+
+    /**
+     * Verifies a user from the given token.
+     * @param token The token to use to verify a user.
+     * @return True if it was verified, false if already verified or token invalid.
+     */
     @Transactional
     public boolean verifyUser(String token){
         Optional<VerificationToken> tokenOptional = verificationTokenRepository.findByToken(token);
@@ -95,6 +146,13 @@ public class UserService {
         }
         return false;
     }
+
+    /**
+     * Sends the user a forgot password reset based on the email provided.
+     * @param email The email to send to.
+     * @throws EmailNotFoundException Thrown if there is no user with that email.
+     * @throws EmailFailureException
+     */
     public void forgotPassword(String email) throws EmailNotFoundException, EmailFailureException {
         Optional<LocalUser> userOptional = localUserRepository.findUserByEmailIgnoreCase(email);
         if (userOptional.isPresent()){
@@ -105,6 +163,11 @@ public class UserService {
             throw new EmailNotFoundException();
         }
     }
+
+    /**
+     * Resets the users password using a given token and email.
+     * @param body The password reset information.
+     */
     public void resetPassword(PasswordResetBody body){
         String email = jwtService.getResetPasswordEmail(body.getToken());
         Optional<LocalUser> userOptional = localUserRepository.findUserByEmailIgnoreCase(email);

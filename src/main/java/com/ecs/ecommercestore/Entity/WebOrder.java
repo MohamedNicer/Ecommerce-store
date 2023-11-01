@@ -8,6 +8,11 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Order generated from the website.
+ * @author mohamednicer
+ */
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -15,23 +20,23 @@ import java.util.List;
 @Table(name = "web_order")
 public class WebOrder {
 
-
+    /** Unique id for the order. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id",nullable = false)
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    @ManyToOne (optional = false)
-    @JoinColumn(name = "user_id",nullable = false)
+    /** The user of the order. */
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private LocalUser user;
 
-    @ManyToOne (optional = false)
-    @JoinColumn(name="address_id",nullable = false)
+    /** The shipping address of the order. */
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "address_id", nullable = false)
     private Address address;
 
-    @OneToMany (mappedBy = "order",
-            cascade = CascadeType.REMOVE,
-            orphanRemoval = true)
+    /** The quantities ordered. */
+    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<WebOrderQuantity> quantities = new ArrayList<>();
-
 }

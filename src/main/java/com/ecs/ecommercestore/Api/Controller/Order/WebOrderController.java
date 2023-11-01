@@ -10,14 +10,30 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RequestMapping("/order")
+/**
+ * Controller to handle requests to create, update and view orders.
+ * @author mohamednicer
+ */
 @RestController
+@RequestMapping("/order")
 public class WebOrderController {
+
+    /** The Order Service. */
     private WebOrderService webOrderService;
 
+    /**
+     * Constructor for spring injection.
+     * @param webOrderService
+     */
     public WebOrderController(WebOrderService webOrderService) {
         this.webOrderService = webOrderService;
     }
+
+    /**
+     * Endpoint to get all orders for a specific user.
+     * @param user The user provided by spring security context.
+     * @return The list of orders the user had made.
+     */
     @GetMapping
     public List<WebOrder> getOrders(@AuthenticationPrincipal LocalUser user){
         return webOrderService.getOrders(user);

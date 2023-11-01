@@ -6,6 +6,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
+/**
+ * Configuration of the security on endpoints.
+ * @author mohamednicer
+ */
 @Configuration
 public class WebSecurityConfig {
     private JWTRequestFilter jwtRequestFilter;
@@ -13,6 +17,13 @@ public class WebSecurityConfig {
     public WebSecurityConfig(JWTRequestFilter jwtRequestFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
     }
+
+    /**
+     * Filter chain to configure security.
+     * @param httpSecurity The security object.
+     * @return The chain built.
+     * @throws Exception Thrown on error configuring.
+     */
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{

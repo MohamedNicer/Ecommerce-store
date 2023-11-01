@@ -27,26 +27,43 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Test class to unit test the UserService class.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class UserServiceTest {
 
+    /** Extension for mocking email sending. */
     @RegisterExtension
     private static GreenMailExtension greenMailExtension = new GreenMailExtension(ServerSetupTest.SMTP)
             .withConfiguration(GreenMailConfiguration.aConfig().withUser("Mohamed","secret1"))
             .withPerMethodLifecycle(true);
 
+    /** The UserService to test. */
     @Autowired
     private UserService userService;
+
+    /** The JWT Service. */
     @Autowired
     private VerificationTokenRepository verificationTokenRepository;
+
+    /** The LocalUser Repository. */
     @Autowired
     private LocalUserRepository localUserRepository;
+
+    /** The encryption Service. */
     @Autowired
     private EncryptionService encryptionService;
+
+    /** The Verification Token Repository. */
     @Autowired
     private JWTService jwtService;
 
+    /**
+     * Tests the registration process of the user.
+     * @throws MessagingException Thrown if the mocked email service fails somehow.
+     */
     @Test
     @Transactional
     public void testRegisterUser() throws MessagingException {
@@ -70,6 +87,11 @@ public class UserServiceTest {
 
     }
 
+    /**
+     * Tests the loginUser method.
+     * @throws EmailFailureException
+     * @throws UserNotVerifiedException
+     */
     @Test
     @Transactional
     public void testLoginUSer() throws EmailFailureException, UserNotVerifiedException {
@@ -98,6 +120,11 @@ public class UserServiceTest {
             Assertions.assertEquals(1, greenMailExtension.getReceivedMessages().length);
         }
     }
+
+    /**
+     * Tests the verifyUser method.
+     * @throws EmailFailureException
+     */
     @Test
     @Transactional
     public void testVerifyUser() throws EmailFailureException {
@@ -116,6 +143,11 @@ public class UserServiceTest {
             Assertions.assertNotNull(loginBody,"User Should Be Verified");
         }
     }
+
+    /**
+     * Tests the forgotPassword method in the User Service.
+     * @throws MessagingException
+     */
     @Test
     @Transactional
     public void testForgotPassword() throws MessagingException {
@@ -126,6 +158,11 @@ public class UserServiceTest {
                         .getRecipients(Message.RecipientType.TO)[0].toString()
                 ,"Reset Password Email Should Be Sent");
     }
+
+    /**
+     * Tests the resetPassword method in the User Service.
+     * @throws MessagingException
+     */
     @Test
     @Transactional
     public void testResetPassword(){

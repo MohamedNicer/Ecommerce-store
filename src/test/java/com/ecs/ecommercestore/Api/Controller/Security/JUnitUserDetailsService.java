@@ -11,12 +11,21 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Service to provide spring with Authentication Principals for unit testing.
+ * @author mohamednicer
+ */
 @Service
 @Primary
 public class JUnitUserDetailsService implements UserDetailsService {
 
+    /** The Local User Repository. */
     @Autowired
     private LocalUserRepository localUserRepository;
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<LocalUser> user = localUserRepository.findUserByUsernameIgnoreCase(username);

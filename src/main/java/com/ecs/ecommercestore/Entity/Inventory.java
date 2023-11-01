@@ -6,6 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Inventory of a product that available for purchase.
+ * @author mohamednicer
+ */
 @Entity
 @Data
 @NoArgsConstructor
@@ -13,16 +17,19 @@ import lombok.NoArgsConstructor;
 @Table(name = "inventory")
 public class Inventory {
 
+    /** Unique id for the inventory. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id",nullable = false)
     private Long id;
 
+    /** The product this inventory is of. */
     @JsonIgnore
     @OneToOne(optional = false, orphanRemoval = true)
-    @JoinColumn(name = "product_id",nullable = false, unique = true)
+    @JoinColumn(name = "product_id", nullable = false, unique = true)
     private Product product;
 
-    @Column(name = "quantity",nullable = false)
+    /** The quantity in stock. */
+    @Column(name = "quantity", nullable = false)
     private Integer quantity;
 }

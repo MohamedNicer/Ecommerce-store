@@ -6,11 +6,19 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * Request body to reset a password using a password reset token.
+ * @author mohamednicer
+ */
 @Data
 public class PasswordResetBody {
+
+    /** The token to authenticate the request. */
     @NotNull
     @NotBlank
     private String token;
+
+    /** The password to set to the account. */
     @NotNull
     @NotBlank
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$")

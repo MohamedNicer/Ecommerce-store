@@ -5,7 +5,6 @@ import com.ecs.ecommercestore.Api.Model.RegistrationBody;
 import com.ecs.ecommercestore.Entity.LocalUser;
 import com.ecs.ecommercestore.Repository.LocalUserRepository;
 import com.ecs.ecommercestore.Service.JWTService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
@@ -23,20 +22,36 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Tests the endpoints in the AuthenticationController.
+ * @author mohamednicer
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class AuthenticationControllerTest {
+
+    /** Extension for mocking email sending. */
     @RegisterExtension
     private static GreenMailExtension greenMailExtension = new GreenMailExtension(ServerSetupTest.SMTP)
             .withConfiguration(GreenMailConfiguration.aConfig().withUser("Mohamed","secret1"))
             .withPerMethodLifecycle(true);
+
+    /** The Mocked MVC. */
     @Autowired
     private MockMvc mockMvc;
+
+    /** The LocalUserRepository */
     @Autowired
     private LocalUserRepository localUserRepository;
+
+    /** The JWTService*/
     @Autowired
     private JWTService jwtService;
 
+    /**
+     * Tests the register endpoint.
+     * @throws Exception
+     */
     @Test
     @Transactional
     public void testRegister() throws Exception {
@@ -126,6 +141,11 @@ public class AuthenticationControllerTest {
                         .content(mapper.writeValueAsString(registrationBody)))
                 .andExpect(status().is(HttpStatus.OK.value()));
     }
+
+    /**
+     * Tests the reset Password endpoint.
+     * @throws Exception
+     */
     @Test
     @Transactional
     public void testResetPassword() throws Exception {
