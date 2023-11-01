@@ -1,10 +1,12 @@
 package com.ecs.ecommercestore.Service;
 
 import com.ecs.ecommercestore.Api.Model.LoginBody;
+import com.ecs.ecommercestore.Api.Model.PasswordResetBody;
 import com.ecs.ecommercestore.Api.Model.RegistrationBody;
 import com.ecs.ecommercestore.Entity.LocalUser;
 import com.ecs.ecommercestore.Entity.VerificationToken;
 import com.ecs.ecommercestore.Exception.EmailFailureException;
+import com.ecs.ecommercestore.Exception.EmailNotFoundException;
 import com.ecs.ecommercestore.Exception.UserAlreadyExistsException;
 import com.ecs.ecommercestore.Exception.UserNotVerifiedException;
 import com.ecs.ecommercestore.Repository.LocalUserRepository;
@@ -92,5 +94,24 @@ public class UserService {
             }
         }
         return false;
+    }
+    public void forgotPassword(String email) throws EmailNotFoundException, EmailFailureException {
+        Optional<LocalUser> userOptional = localUserRepository.findUserByEmailIgnoreCase(email);
+        if (userOptional.isPresent()){
+            LocalUser user = userOptional.get();
+            String token = jwtService.generatePasswordResetJWT(user);
+            emailService.sendPasswordResetEmail(user,token);
+        } else {
+            throw new EmailNotFoundException();
+        }
+    }
+    public void resetPassword(PasswordResetBody body){
+        String email = jwtService.getResetPasswordEmail(body.getToken());
+        Optional<LocalUser> userOptional = localUserRepository.findUserByEmailIgnoreCase(email);
+        if(userOptional.isPresent()){
+            LocalUser user = userOptional.get();
+            user.setPassword(encryptionService.encryptPassword(body.getPassword()));
+            localUserRepository.save(user);
+        }
     }
 }

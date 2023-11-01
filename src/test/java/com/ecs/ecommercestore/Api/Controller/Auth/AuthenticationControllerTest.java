@@ -1,6 +1,11 @@
 package com.ecs.ecommercestore.Api.Controller.Auth;
 
+import com.ecs.ecommercestore.Api.Model.PasswordResetBody;
 import com.ecs.ecommercestore.Api.Model.RegistrationBody;
+import com.ecs.ecommercestore.Entity.LocalUser;
+import com.ecs.ecommercestore.Repository.LocalUserRepository;
+import com.ecs.ecommercestore.Service.JWTService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
@@ -27,6 +32,10 @@ public class AuthenticationControllerTest {
             .withPerMethodLifecycle(true);
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private LocalUserRepository localUserRepository;
+    @Autowired
+    private JWTService jwtService;
 
     @Test
     @Transactional
@@ -117,4 +126,45 @@ public class AuthenticationControllerTest {
                         .content(mapper.writeValueAsString(registrationBody)))
                 .andExpect(status().is(HttpStatus.OK.value()));
     }
+    @Test
+    @Transactional
+    public void testResetPassword() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        PasswordResetBody passwordResetBody = new PasswordResetBody();
+        LocalUser user = localUserRepository.findUserByUsernameIgnoreCase("User1").get();
+        String token = jwtService.generatePasswordResetJWT(user);
+        passwordResetBody.setToken(token);
+        passwordResetBody.setPassword("");
+        mockMvc.perform(post("/auth/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(passwordResetBody)))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+        passwordResetBody.setPassword(null);
+        mockMvc.perform(post("/auth/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(passwordResetBody)))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+        passwordResetBody.setPassword("Short");
+        mockMvc.perform(post("/auth/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(passwordResetBody)))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+        passwordResetBody.setPassword("password11");
+        passwordResetBody.setToken(null);
+        mockMvc.perform(post("/auth/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(passwordResetBody)))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+        passwordResetBody.setToken("");
+        mockMvc.perform(post("/auth/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(passwordResetBody)))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+        passwordResetBody.setToken(token);
+        mockMvc.perform(post("/auth/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(passwordResetBody)))
+                .andExpect(status().is(HttpStatus.OK.value()));
+    }
+
 }

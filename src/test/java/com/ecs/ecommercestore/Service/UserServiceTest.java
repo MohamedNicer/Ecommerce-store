@@ -1,11 +1,15 @@
 package com.ecs.ecommercestore.Service;
 
 import com.ecs.ecommercestore.Api.Model.LoginBody;
+import com.ecs.ecommercestore.Api.Model.PasswordResetBody;
 import com.ecs.ecommercestore.Api.Model.RegistrationBody;
+import com.ecs.ecommercestore.Entity.LocalUser;
 import com.ecs.ecommercestore.Entity.VerificationToken;
 import com.ecs.ecommercestore.Exception.EmailFailureException;
+import com.ecs.ecommercestore.Exception.EmailNotFoundException;
 import com.ecs.ecommercestore.Exception.UserAlreadyExistsException;
 import com.ecs.ecommercestore.Exception.UserNotVerifiedException;
+import com.ecs.ecommercestore.Repository.LocalUserRepository;
 import com.ecs.ecommercestore.Repository.VerificationTokenRepository;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
@@ -36,6 +40,12 @@ public class UserServiceTest {
     private UserService userService;
     @Autowired
     private VerificationTokenRepository verificationTokenRepository;
+    @Autowired
+    private LocalUserRepository localUserRepository;
+    @Autowired
+    private EncryptionService encryptionService;
+    @Autowired
+    private JWTService jwtService;
 
     @Test
     @Transactional
@@ -91,7 +101,8 @@ public class UserServiceTest {
     @Test
     @Transactional
     public void testVerifyUser() throws EmailFailureException {
-        Assertions.assertFalse(userService.verifyUser("Bad Token"),"Token Should Be Invalid or Doesn't Exist");
+        Assertions.assertFalse(userService.verifyUser("Bad Token"),
+                "Token Should Be Invalid or Doesn't Exist");
         LoginBody loginBody = new LoginBody();
         loginBody.setUsername("User2");
         loginBody.setPassword("password21");
@@ -104,5 +115,28 @@ public class UserServiceTest {
             Assertions.assertTrue(userService.verifyUser(token),"Token Should Be Valid!");
             Assertions.assertNotNull(loginBody,"User Should Be Verified");
         }
+    }
+    @Test
+    @Transactional
+    public void testForgotPassword() throws MessagingException {
+        Assertions.assertThrows(EmailNotFoundException.class,() ->
+                userService.forgotPassword("fakeUser@mail.com"),"Non Existent Email Should Be Rejected");
+        Assertions.assertDoesNotThrow(()-> userService.forgotPassword("user1@mail.com"));
+        Assertions.assertEquals("user1@mail.com", greenMailExtension.getReceivedMessages()[0]
+                        .getRecipients(Message.RecipientType.TO)[0].toString()
+                ,"Reset Password Email Should Be Sent");
+    }
+    @Test
+    @Transactional
+    public void testResetPassword(){
+        LocalUser user = localUserRepository.findUserByUsernameIgnoreCase("User1").get();
+        String token = jwtService.generatePasswordResetJWT(user);
+        PasswordResetBody passwordResetBody = new PasswordResetBody();
+        passwordResetBody.setPassword("password123");
+        passwordResetBody.setToken(token);
+        userService.resetPassword(passwordResetBody);
+        user = localUserRepository.findUserByUsernameIgnoreCase("user1").get();
+        Assertions.assertTrue(encryptionService.verifyPassword("password123",user.getPassword()),
+                "Password Should Be Updated On the DB");
     }
 }

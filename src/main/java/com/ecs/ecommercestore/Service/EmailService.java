@@ -1,5 +1,6 @@
 package com.ecs.ecommercestore.Service;
 
+import com.ecs.ecommercestore.Entity.LocalUser;
 import com.ecs.ecommercestore.Entity.VerificationToken;
 import com.ecs.ecommercestore.Exception.EmailFailureException;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,18 @@ public class EmailService {
         mailMessage.setText("Please follow the link below to activate your account\n"
         + url + "/auth/verify?token=" + verificationToken.getToken());
         try {
+            javaMailSender.send(mailMessage);
+        } catch (MailException exception){
+            throw new EmailFailureException();
+        }
+    }
+    public void sendPasswordResetEmail(LocalUser user, String token) throws EmailFailureException {
+        SimpleMailMessage mailMessage = makeMailMessage();
+        mailMessage.setTo(user.getEmail());
+        mailMessage.setSubject("Password Reset Email");
+        mailMessage.setText("You've requested a Password Reset, Please follow the link below to reset your Email\n"
+        + url + "/auth/reset?token=" + token);
+        try{
             javaMailSender.send(mailMessage);
         } catch (MailException exception){
             throw new EmailFailureException();

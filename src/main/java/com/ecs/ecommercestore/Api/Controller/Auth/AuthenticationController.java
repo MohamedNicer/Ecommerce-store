@@ -2,9 +2,11 @@ package com.ecs.ecommercestore.Api.Controller.Auth;
 
 import com.ecs.ecommercestore.Api.Model.LoginBody;
 import com.ecs.ecommercestore.Api.Model.LoginResponse;
+import com.ecs.ecommercestore.Api.Model.PasswordResetBody;
 import com.ecs.ecommercestore.Api.Model.RegistrationBody;
 import com.ecs.ecommercestore.Entity.LocalUser;
 import com.ecs.ecommercestore.Exception.EmailFailureException;
+import com.ecs.ecommercestore.Exception.EmailNotFoundException;
 import com.ecs.ecommercestore.Exception.UserAlreadyExistsException;
 import com.ecs.ecommercestore.Exception.UserNotVerifiedException;
 import com.ecs.ecommercestore.Service.UserService;
@@ -71,5 +73,21 @@ public class AuthenticationController {
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
+    }
+    @PostMapping("/forgot")
+    public ResponseEntity forgotPassword(@RequestParam String email){
+        try {
+            userService.forgotPassword(email);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (EmailNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (EmailFailureException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @PostMapping("/reset")
+    public ResponseEntity resetPassword(@Valid @RequestBody PasswordResetBody body){
+        userService.resetPassword(body);
+        return ResponseEntity.ok().build();
     }
 }
