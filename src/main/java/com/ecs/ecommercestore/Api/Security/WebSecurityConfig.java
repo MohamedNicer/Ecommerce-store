@@ -29,11 +29,11 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{
         httpSecurity.csrf(csrf ->
                 csrf.disable());
-        httpSecurity.cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.disable());
+        httpSecurity.cors(cors -> cors.disable());
         httpSecurity.addFilterBefore(jwtRequestFilter, AuthorizationFilter.class);
         httpSecurity.authorizeHttpRequests(auth ->
                 auth.requestMatchers("/product","/auth/login","/auth/register","auth/verify",
-                                "/auth/forgot","/auth/reset").permitAll()
+                                "/auth/forgot","/auth/reset","error").permitAll()
                 .anyRequest().authenticated());
         return httpSecurity.build();
     }
