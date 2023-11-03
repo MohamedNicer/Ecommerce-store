@@ -33,7 +33,8 @@ public class WebSecurityConfig {
         httpSecurity.addFilterBefore(jwtRequestFilter, AuthorizationFilter.class);
         httpSecurity.authorizeHttpRequests(auth ->
                 auth.requestMatchers("/product","/auth/login","/auth/register","auth/verify",
-                                "/auth/forgot","/auth/reset","error").permitAll()
+                                "/auth/forgot","/auth/reset","error","/websocket","/websocket/**")
+                        .permitAll()
                 .anyRequest().authenticated());
         return httpSecurity.build();
     }

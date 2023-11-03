@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -176,5 +177,15 @@ public class UserService {
             user.setPassword(encryptionService.encryptPassword(body.getPassword()));
             localUserRepository.save(user);
         }
+    }
+
+    /**
+     * Method to check if an authenticated user has permission to a user ID.
+     * @param user The authenticated user.
+     * @param id The user ID.
+     * @return True if they have permission, false otherwise.
+     */
+    public boolean userHasPermissionToUser(LocalUser user, Long id){
+        return Objects.equals(user.getId(), id);
     }
 }
